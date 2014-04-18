@@ -7,10 +7,11 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Main {
-	
+
 	public static void main(String[] args) {
 
 		//need to use more generic path
@@ -18,84 +19,70 @@ public class Main {
 		BufferedReader br = null;
 		String line = "";
 		String splitBy = ",";
-		
+
 		//will be from parameters
 		double min_sup = 0.3;
 		double min_conf = 0.5;
-		
+
 		DecimalFormat df = new DecimalFormat("#0.00");
-		
+
 		try {
-			
+
 			br = new BufferedReader(new FileReader(csvFile));
-			ArrayList<String> buildings = new ArrayList<String>();
-			ArrayList<String> consumption = new ArrayList<String>();
-			ArrayList<String> utility = new ArrayList<String>();
-			Map<String, Integer> bdmap = new HashMap<String, Integer>();
-			Map<String, Integer> utilmap = new HashMap<String, Integer>();
-			
+			Map<Integer, List<String>> map = new HashMap<Integer, List<String>>();
+			Map<String, Integer> tempmap = new HashMap<String, Integer>();
+
 			int numRows = 0;
 
 			while ((line = br.readLine()) != null){
-				
+
 				//keep track of total number of row (to help debug & to calculate support)
 				numRows = numRows + 1;
-				
+
 				//separate by comma
 				String[] naturalGas = line.split(splitBy);
-				buildings.add(naturalGas[1]);
-				//Using consumption in gigajoules (GJ)
-				consumption.add(naturalGas[3]);
-				utility.add(naturalGas[4]);
-				
-				//check if value type has already been accounted for
-				Object check = bdmap.get(naturalGas[1]);
-				//if it hasn't, add to list
-				if(check == null){
-					bdmap.put(naturalGas[1], 1);
-				}else{
-					//if it has, increase count by 1
-					int count = bdmap.get(naturalGas[1]);
-					count=count+1;
-					bdmap.put(naturalGas[1], count);
+
+				//store into a map to compare variables within a row
+				List<String> valueSet = new ArrayList<String>();
+				for(int i=0; i<naturalGas.length; i++){
+					valueSet.add(naturalGas[i]);
 				}
-				
-				check = utilmap.get(naturalGas[4]);
-				//if it hasn't, add to list
-				if(check == null){
-					utilmap.put(naturalGas[4], 1);
-				}else{
-					//if it has, increase count by 1
-					int count = utilmap.get(naturalGas[4]);
-					count=count+1;
-					utilmap.put(naturalGas[4], count);
-				}
-				
-				
+
+				map.put(numRows, valueSet);
+
 			}
+
+			//-----This is to keep count of how often variables are used, to calculate minimum support
+			//loop every row
+			for (Map.Entry<Integer, List<String>> entry : map.entrySet()){
+				List<String> valueSet = entry.getValue();
+				//loop every column
+				for(int i=0; i<valueSet.size(); i++){
+					String x = valueSet.get(i);
+					Object check = tempmap.get(x);
+					//if it hasn't been accounted for, add to list
+					if(check == null){
+						tempmap.put(x, 1);
+					}else{
+						//if it has, increase count by 1
+						int count = tempmap.get(x);
+						count=count+1;
+						tempmap.put(x, count);
+					}
+				}
+			}
+
+			//-----Prints out the variables that meet minimum support requirement
 			double support;	
-			//First Pass for minimum support
-			System.out.println("First Pass: Minimum Support");
-			//building type
-			for (Map.Entry<String, Integer> entry : bdmap.entrySet()) {
+			for (Map.Entry<String, Integer> entry : tempmap.entrySet()) {
 				int value = entry.getValue();
 				support = ((double)value)/((double)numRows);
-				if(support>min_sup){
-					System.out.println("Building Type = "+entry.getKey()+", support = "+df.format(support));
-				}
-	 
-			}
-			//utility
-			for (Map.Entry<String, Integer> entry : utilmap.entrySet()) {
-				int value = entry.getValue();
-				support = ((double)value)/((double)numRows);
-				if(support>min_sup){
-					System.out.println("Utility Name = "+entry.getKey()+", support = "+df.format(support));
+				if(support>=min_sup){
+					System.out.println("Variable = "+entry.getKey()+", support = "+df.format(support));
 				}
 			}
-			
-			
-			
+
+
 		}catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
