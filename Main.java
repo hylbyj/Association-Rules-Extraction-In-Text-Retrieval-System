@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,13 +11,16 @@ import java.util.Map;
 
 public class Main {
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
         
 		//need to use more generic path
 		String csvFile = "/Users/arianagiorgi/Documents/workspace/dbproj3/GasTable.csv";
 		BufferedReader br = null;
 		String line = "";
 		String splitBy = ",";
+		
+		//create output file
+		PrintWriter out = new PrintWriter("output.txt");
 		
 		//will be from parameters
 		double min_sup = 0.3;
@@ -80,14 +84,14 @@ public class Main {
 			//-----Prints out the variables that meet minimum support requirement
 			//minimum support, first pass
 			double support;
-			System.out.println("==Frequent itemsets (min_sup="+df.format(min_sup*(100))+"%)");
+			out.println("==Frequent itemsets (min_sup="+df.format(min_sup*(100))+"%)");
 			for (Map.Entry<String, Integer> entry : tempmap.entrySet()) {
 				int value = entry.getValue();
 				support = ((double)value)/((double)numRows);
 				if(support>=min_sup){
 					//keep track of variables that meet first pass of min support
 					firstpass.add(entry.getKey());
-					System.out.println("["+entry.getKey()+"], "+df.format(support*100)+"%");
+					out.println("["+entry.getKey()+"], "+df.format(support*100)+"%");
 				}
 			}
 			
@@ -155,19 +159,19 @@ public class Main {
 				if(support>=min_sup){
 					//store item sets that meet minimum support
 					supResults.add(key);
-					System.out.print("[");
+					out.print("[");
 					for(int i=0; i<key.size(); i++){
 						if(i == key.size() - 1){
-							System.out.print(key.get(i));
+							out.print(key.get(i));
 						}else{
-							System.out.print(key.get(i) + ", ");
+							out.print(key.get(i) + ", ");
 						}
 					}
-					System.out.println("], "+df.format(support*100)+"%");
+					out.println("], "+df.format(support*100)+"%");
 				}
 			}
 			
-			
+			out.close();
 		}catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
