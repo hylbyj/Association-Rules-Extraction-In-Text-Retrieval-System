@@ -13,8 +13,8 @@ public class Main {
 	
 	public static void main(String[] args) throws FileNotFoundException {
         
-		//need to use more generic path
-		String csvFile = "/Users/arianagiorgi/Documents/workspace/dbproj3/GasTable.csv";
+		//locate csv file in bin
+		String csvFile = "bin/GasTable.csv";
 		BufferedReader br = null;
 		String line = "";
 		String splitBy = ",";
