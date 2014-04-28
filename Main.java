@@ -1,5 +1,3 @@
-package dbproj3;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -31,7 +29,11 @@ public class Main {
 			br = new BufferedReader(new FileReader(csvFile));
 			Map<Integer, List<String>> map = new HashMap<Integer, List<String>>();
 			Map<String, Integer> tempmap = new HashMap<String, Integer>();
-
+			ArrayList<ArrayList<String>> templist = new ArrayList<ArrayList<String>>();
+			ArrayList<String> firstpass = new ArrayList<String>();
+			Map<List<String>, Integer> secondpass = new HashMap<List<String>, Integer>();
+			ArrayList<List<String>> supResults = new ArrayList<List<String>>();
+			
 			int numRows = 0;
 
 			while ((line = br.readLine()) != null){
@@ -60,25 +62,109 @@ public class Main {
 				for(int i=0; i<valueSet.size(); i++){
 					String x = valueSet.get(i);
 					Object check = tempmap.get(x);
-					//if it hasn't been accounted for, add to list
-					if(check == null){
-						tempmap.put(x, 1);
-					}else{
-						//if it has, increase count by 1
-						int count = tempmap.get(x);
-						count=count+1;
-						tempmap.put(x, count);
+					//don't consider the "unknown" answers
+					if(!x.equals("Unknown")){
+						//if it hasn't been accounted for, add to list
+						if(check == null){
+							tempmap.put(x, 1);
+						}else{
+							//if it has, increase count by 1
+							int count = tempmap.get(x);
+							count=count+1;
+							tempmap.put(x, count);
+						}
 					}
 				}
 			}
 			
 			//-----Prints out the variables that meet minimum support requirement
+			//minimum support, first pass
 			double support;	
+			System.out.println("---Min Support, First Pass---");
 			for (Map.Entry<String, Integer> entry : tempmap.entrySet()) {
 				int value = entry.getValue();
 				support = ((double)value)/((double)numRows);
 				if(support>=min_sup){
-					System.out.println("Variable = "+entry.getKey()+", support = "+df.format(support));
+					//keep track of variables that meet first pass of min support
+					firstpass.add(entry.getKey());
+					System.out.println("Variable = "+entry.getKey()+"; support = "+df.format(support));
+				}
+			}
+			
+			//-----Start of the second pass of support requirement, testing pairs of items from first pass
+			for (Map.Entry<Integer, List<String>> entry : map.entrySet()){
+				List<String> valueSet = entry.getValue();
+				ArrayList<String> list = new ArrayList<String>();
+				int count = 0;
+				//loop every column
+				for(int i=0; i<valueSet.size(); i++){
+					String x = valueSet.get(i);
+					//loop through firstpass to see if row contains more than one item
+					listloop:
+					for(int j=0; j<firstpass.size(); j++){
+						if(firstpass.get(j).equals(x)){
+							count = count + 1; //to keep track of how many items the row has in common
+							list.add(x);
+							break listloop;
+						}
+					}
+				}
+				//if row has 2 or more items that match, these items are possible item sets
+				if(count >= 2){
+					boolean check = templist.contains(list);
+					if(check == false){
+						templist.add(list);
+					}
+				}
+			}
+			
+			//loop through groups of variables to check for existence in rows
+			for (int i=0; i<templist.size(); i++){
+				List<String> list = templist.get(i);
+				//loop rows
+				for (Map.Entry<Integer, List<String>> entry : map.entrySet()){
+					boolean good = true;
+					List<String> valueSet = entry.getValue();
+					listloop:
+					for(int j=0; j<list.size(); j++){
+						boolean check = valueSet.contains(list.get(j));
+						//if one of the items does not exist in the row, the group doesn't exist in the row
+						if(check == false){
+							good = false;
+							break listloop;
+						}
+					}
+					//if all items are in the row, count the row as an occurrence of the item set
+					if(good==true){
+						Object check = secondpass.get(list);
+						if(check == null){
+							secondpass.put(list, 1);
+						}else{
+							int count = secondpass.get(list);
+							count=count+1;
+							secondpass.put(list, count);
+						}
+					}
+				}
+			}
+
+			System.out.println("---Min Support, Second Pass---");
+			for (Map.Entry<List<String>, Integer> entry : secondpass.entrySet()) {
+				List<String> key = entry.getKey();
+				int value = entry.getValue();
+				support = ((double)value)/((double)numRows);
+				if(support>=min_sup){
+					//store item sets that meet minimum support
+					supResults.add(key);
+					System.out.print("Variables = ");
+					for(int i=0; i<key.size(); i++){
+						if(i == key.size() - 1){
+							System.out.print(key.get(i));
+						}else{
+							System.out.print(key.get(i) + ", ");
+						}
+					}
+					System.out.println("; support = "+df.format(support));
 				}
 			}
 			
