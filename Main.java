@@ -34,11 +34,8 @@ public class Main {
 			Map<Integer, List<String>> map = new HashMap<Integer, List<String>>();
 			Map<String, Integer> tempmap = new HashMap<String, Integer>();
 			Map<List<String>, Integer> tempmap2 = new HashMap<List<String>, Integer>();
-			Map<List<String>, Integer> tempmap3 = new HashMap<List<String>, Integer>();
 			ArrayList<ArrayList<String>> templist = new ArrayList<ArrayList<String>>();
-			ArrayList<ArrayList<String>> templist2 = new ArrayList<ArrayList<String>>();
-			ArrayList<String> firstpass = new ArrayList<String>();
-			ArrayList<List<String>> secondpass = new ArrayList<List<String>>();
+			ArrayList<List<String>> firstpass = new ArrayList<List<String>>();
 			Map<List<String>, Double> supResults = new HashMap<List<String>, Double>();
 			
 			int numRows = 0;
@@ -58,7 +55,6 @@ public class Main {
 				}
 				
 				map.put(numRows, valueSet);
-				
 			}
 			
 			//-----This is to keep count of how often variables are used, to calculate minimum support
@@ -84,7 +80,6 @@ public class Main {
 				}
 			}
 			
-			//-----Prints out the variables that meet minimum support requirement
 			//minimum support, first pass
 			double support;
 			for (Map.Entry<String, Integer> entry : tempmap.entrySet()) {
@@ -92,87 +87,20 @@ public class Main {
 				support = ((double)value)/((double)numRows);
 				if(support>=min_sup){
 					//keep track of variables that meet first pass of min support
-					firstpass.add(entry.getKey());
 					List<String> result = new ArrayList<String>();
 					result.add(entry.getKey());
+					firstpass.add(result);
 					supResults.put(result, support);
-					//out.println("["+entry.getKey()+"], "+df.format(support*100)+"%");
 				}
 			}
 			
-			//-----Start of the second pass of support requirement, testing pairs of items from first pass
-			for(int i=0; i<firstpass.size(); i++){
-				for(int j=i;j<firstpass.size();j++){
-					if(!firstpass.get(i).equals(firstpass.get(j))){
-						ArrayList<String> pair = new ArrayList<String>();
-						pair.add(firstpass.get(i));
-						pair.add(firstpass.get(j));
-						boolean check = templist.contains(pair);
-						if(check == false){
-							templist.add(pair);
-						}
-					}
-				}
-			}
-			
-			//loop through groups of variables to check for existence in rows
-			for (int i=0; i<templist.size(); i++){
-				List<String> list = templist.get(i);
-				//loop rows
-				for (Map.Entry<Integer, List<String>> entry : map.entrySet()){
-					boolean good = true;
-					List<String> valueSet = entry.getValue();
-                listloop:
-					for(int j=0; j<list.size(); j++){
-						boolean check = valueSet.contains(list.get(j));
-						//if one of the items does not exist in the row, the group doesn't exist in the row
-						if(check == false){
-							good = false;
-							break listloop;
-						}
-					}
-					//if all items are in the row, count the row as an occurrence of the item set
-					if(good==true){
-						Object check = tempmap2.get(list);
-						if(check == null){
-							tempmap2.put(list, 1);
-						}else{
-							int count = tempmap2.get(list);
-							count=count+1;
-							tempmap2.put(list, count);
-						}
-					}
-				}
-			}
-            
-			for (Map.Entry<List<String>, Integer> entry : tempmap2.entrySet()) {
-				List<String> key = entry.getKey();
-				int value = entry.getValue();
-				support = ((double)value)/((double)numRows);
-				if(support>=min_sup){
-					//store item sets that meet minimum support
-					secondpass.add(key);
-					supResults.put(key, support);
-					/*out.print("[");
-                     for(int i=0; i<key.size(); i++){
-                     if(i == key.size() - 1){
-                     out.print(key.get(i));
-                     }else{
-                     out.print(key.get(i) + ", ");
-                     }
-                     }
-                     out.println("], "+df.format(support*100)+"%");*/
-				}
-			}
-			
-			
-			//--Third, final/reiterative pass
+			//----Final/reiterative pass
 			//while there are still frequent item sets to be tested...
-			while(secondpass.size() != 0){
-				for(int i=0; i<secondpass.size(); i++){
-					for(int j=i; j<secondpass.size(); j++){
-						List<String> listi = secondpass.get(i);
-						List<String> listj = secondpass.get(j);
+			while(firstpass.size() != 0){
+				for(int i=0; i<firstpass.size(); i++){
+					for(int j=i; j<firstpass.size(); j++){
+						List<String> listi = firstpass.get(i);
+						List<String> listj = firstpass.get(j);
 						for(int k=0; k<listj.size(); k++){
 							boolean check = listi.contains(listj.get(k));
 							if(check == false){
@@ -181,20 +109,20 @@ public class Main {
 									group.add(listi.get(l));
 								}
 								group.add(listj.get(k));
-								boolean contains = templist2.contains(group);
+								boolean contains = templist.contains(group);
 								if(contains == false){
-									templist2.add(group);
+									templist.add(group);
 								}
 							}
 						}
 					}
 				}
 				
-				secondpass.clear();
+				firstpass.clear();
 				
 				//loop through groups of variables to check for existence in rows
-				for (int i=0; i<templist2.size(); i++){
-					List<String> list = templist2.get(i);
+				for (int i=0; i<templist.size(); i++){
+					List<String> list = templist.get(i);
 					//loop rows
 					for (Map.Entry<Integer, List<String>> entry : map.entrySet()){
 						boolean good = true;
@@ -210,40 +138,31 @@ public class Main {
                         }
 						//if all items are in the row, count the row as an occurrence of the item set
 						if(good==true){
-							Object check = tempmap3.get(list);
+							Object check = tempmap2.get(list);
 							if(check == null){
-								tempmap3.put(list, 1);
+								tempmap2.put(list, 1);
 							}else{
-								int count = tempmap3.get(list);
+								int count = tempmap2.get(list);
 								count=count+1;
-								tempmap3.put(list, count);
+								tempmap2.put(list, count);
 							}
 						}
 					}
 				}
                 
-				for (Map.Entry<List<String>, Integer> entry : tempmap3.entrySet()) {
+				for (Map.Entry<List<String>, Integer> entry : tempmap2.entrySet()) {
 					List<String> key = entry.getKey();
 					int value = entry.getValue();
 					support = ((double)value)/((double)numRows);
 					if(support>=min_sup){
 						//store item sets that meet minimum support and need to be tested again
-						secondpass.add(key); //this value will determine if while loop is repeated
+						firstpass.add(key); //this value will determine if while loop is repeated
 						supResults.put(key, support);
-						/*out.print("[");
-                         for(int i=0; i<key.size(); i++){
-                         if(i == key.size() - 1){
-                         out.print(key.get(i));
-                         }else{
-                         out.print(key.get(i) + ", ");
-                         }
-                         }
-                         out.println("], "+df.format(support*100)+"%");*/
 					}
 				}
 				//clear lists to prepare for next pass of while loop
-				tempmap3.clear();
-				templist2.clear();
+				tempmap2.clear();
+				templist.clear();
 			}
 			
 			//print all item sets that mean min_sup
