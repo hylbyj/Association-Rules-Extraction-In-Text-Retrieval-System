@@ -33,10 +33,13 @@ public class Main {
 			br = new BufferedReader(new FileReader(csvFile));
 			Map<Integer, List<String>> map = new HashMap<Integer, List<String>>();
 			Map<String, Integer> tempmap = new HashMap<String, Integer>();
+			Map<List<String>, Integer> tempmap2 = new HashMap<List<String>, Integer>();
+			Map<List<String>, Integer> tempmap3 = new HashMap<List<String>, Integer>();
 			ArrayList<ArrayList<String>> templist = new ArrayList<ArrayList<String>>();
+			ArrayList<ArrayList<String>> templist2 = new ArrayList<ArrayList<String>>();
 			ArrayList<String> firstpass = new ArrayList<String>();
-			Map<List<String>, Integer> secondpass = new HashMap<List<String>, Integer>();
-			ArrayList<List<String>> supResults = new ArrayList<List<String>>();
+			ArrayList<List<String>> secondpass = new ArrayList<List<String>>();
+			Map<List<String>, Double> supResults = new HashMap<List<String>, Double>();
 			
 			int numRows = 0;
             
@@ -84,40 +87,30 @@ public class Main {
 			//-----Prints out the variables that meet minimum support requirement
 			//minimum support, first pass
 			double support;
-			out.println("==Frequent itemsets (min_sup="+df.format(min_sup*(100))+"%)");
 			for (Map.Entry<String, Integer> entry : tempmap.entrySet()) {
 				int value = entry.getValue();
 				support = ((double)value)/((double)numRows);
 				if(support>=min_sup){
 					//keep track of variables that meet first pass of min support
 					firstpass.add(entry.getKey());
-					out.println("["+entry.getKey()+"], "+df.format(support*100)+"%");
+					List<String> result = new ArrayList<String>();
+					result.add(entry.getKey());
+					supResults.put(result, support);
+					//out.println("["+entry.getKey()+"], "+df.format(support*100)+"%");
 				}
 			}
 			
 			//-----Start of the second pass of support requirement, testing pairs of items from first pass
-			for (Map.Entry<Integer, List<String>> entry : map.entrySet()){
-				List<String> valueSet = entry.getValue();
-				ArrayList<String> list = new ArrayList<String>();
-				int count = 0;
-				//loop every column
-				for(int i=0; i<valueSet.size(); i++){
-					String x = valueSet.get(i);
-					//loop through firstpass to see if row contains more than one item
-                listloop:
-					for(int j=0; j<firstpass.size(); j++){
-						if(firstpass.get(j).equals(x)){
-							count = count + 1; //to keep track of how many items the row has in common
-							list.add(x);
-							break listloop;
+			for(int i=0; i<firstpass.size(); i++){
+				for(int j=i;j<firstpass.size();j++){
+					if(!firstpass.get(i).equals(firstpass.get(j))){
+						ArrayList<String> pair = new ArrayList<String>();
+						pair.add(firstpass.get(i));
+						pair.add(firstpass.get(j));
+						boolean check = templist.contains(pair);
+						if(check == false){
+							templist.add(pair);
 						}
-					}
-				}
-				//if row has 2 or more items that match, these items are possible item sets
-				if(count >= 2){
-					boolean check = templist.contains(list);
-					if(check == false){
-						templist.add(list);
 					}
 				}
 			}
@@ -140,37 +133,135 @@ public class Main {
 					}
 					//if all items are in the row, count the row as an occurrence of the item set
 					if(good==true){
-						Object check = secondpass.get(list);
+						Object check = tempmap2.get(list);
 						if(check == null){
-							secondpass.put(list, 1);
+							tempmap2.put(list, 1);
 						}else{
-							int count = secondpass.get(list);
+							int count = tempmap2.get(list);
 							count=count+1;
-							secondpass.put(list, count);
+							tempmap2.put(list, count);
 						}
 					}
 				}
 			}
             
-			for (Map.Entry<List<String>, Integer> entry : secondpass.entrySet()) {
+			for (Map.Entry<List<String>, Integer> entry : tempmap2.entrySet()) {
 				List<String> key = entry.getKey();
 				int value = entry.getValue();
 				support = ((double)value)/((double)numRows);
 				if(support>=min_sup){
 					//store item sets that meet minimum support
-					supResults.add(key);
-					out.print("[");
-					for(int i=0; i<key.size(); i++){
-						if(i == key.size() - 1){
-							out.print(key.get(i));
-						}else{
-							out.print(key.get(i) + ", ");
-						}
-					}
-					out.println("], "+df.format(support*100)+"%");
+					secondpass.add(key);
+					supResults.put(key, support);
+					/*out.print("[");
+                     for(int i=0; i<key.size(); i++){
+                     if(i == key.size() - 1){
+                     out.print(key.get(i));
+                     }else{
+                     out.print(key.get(i) + ", ");
+                     }
+                     }
+                     out.println("], "+df.format(support*100)+"%");*/
 				}
 			}
 			
+			
+			//--Third, final/reiterative pass
+			//while there are still frequent item sets to be tested...
+			while(secondpass.size() != 0){
+				for(int i=0; i<secondpass.size(); i++){
+					for(int j=i; j<secondpass.size(); j++){
+						List<String> listi = secondpass.get(i);
+						List<String> listj = secondpass.get(j);
+						for(int k=0; k<listj.size(); k++){
+							boolean check = listi.contains(listj.get(k));
+							if(check == false){
+								ArrayList<String> group = new ArrayList<String>();
+								for(int l=0; l<listi.size(); l++){
+									group.add(listi.get(l));
+								}
+								group.add(listj.get(k));
+								boolean contains = templist2.contains(group);
+								if(contains == false){
+									templist2.add(group);
+								}
+							}
+						}
+					}
+				}
+				
+				secondpass.clear();
+				
+				//loop through groups of variables to check for existence in rows
+				for (int i=0; i<templist2.size(); i++){
+					List<String> list = templist2.get(i);
+					//loop rows
+					for (Map.Entry<Integer, List<String>> entry : map.entrySet()){
+						boolean good = true;
+						List<String> valueSet = entry.getValue();
+                    listloop:
+                        for(int j=0; j<list.size(); j++){
+                            boolean check = valueSet.contains(list.get(j));
+                            //if one of the items does not exist in the row, the group doesn't exist in the row
+                            if(check == false){
+                                good = false;
+                                break listloop;
+                            }
+                        }
+						//if all items are in the row, count the row as an occurrence of the item set
+						if(good==true){
+							Object check = tempmap3.get(list);
+							if(check == null){
+								tempmap3.put(list, 1);
+							}else{
+								int count = tempmap3.get(list);
+								count=count+1;
+								tempmap3.put(list, count);
+							}
+						}
+					}
+				}
+                
+				for (Map.Entry<List<String>, Integer> entry : tempmap3.entrySet()) {
+					List<String> key = entry.getKey();
+					int value = entry.getValue();
+					support = ((double)value)/((double)numRows);
+					if(support>=min_sup){
+						//store item sets that meet minimum support and need to be tested again
+						secondpass.add(key); //this value will determine if while loop is repeated
+						supResults.put(key, support);
+						/*out.print("[");
+                         for(int i=0; i<key.size(); i++){
+                         if(i == key.size() - 1){
+                         out.print(key.get(i));
+                         }else{
+                         out.print(key.get(i) + ", ");
+                         }
+                         }
+                         out.println("], "+df.format(support*100)+"%");*/
+					}
+				}
+				//clear lists to prepare for next pass of while loop
+				tempmap3.clear();
+				templist2.clear();
+			}
+			
+			//print all item sets that mean min_sup
+			out.println("==Frequent itemsets (min_sup="+df.format(min_sup*(100))+"%)");
+			for (Map.Entry<List<String>, Double> entry : supResults.entrySet()) {
+				List<String> keys = entry.getKey();
+				out.print("[");
+				for(int j=0; j<keys.size(); j++){
+					if(j == keys.size()-1){
+						out.print(keys.get(j) + "], ");
+					}else{
+						out.print(keys.get(j) + ", ");
+					}
+				}
+				out.println(df.format(entry.getValue()*100)+"%");
+			}
+            
+			//close out file
 			out.close();
 		}catch (FileNotFoundException e) {
 			e.printStackTrace();
