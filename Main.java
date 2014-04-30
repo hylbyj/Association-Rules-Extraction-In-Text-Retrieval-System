@@ -11,7 +11,11 @@ public class Main {
 	public static void main(String[] args) throws FileNotFoundException {
         
 		//locate csv file in bin
-		String csvFile = "bin/GasTable.csv";
+		//get the name of the file 
+		String csvFile ;
+		csvFile = args[0];
+
+		// = "bin/GasTable.csv";
 		BufferedReader br = null;
 		String line = "";
 		String splitBy = ",";
@@ -20,8 +24,8 @@ public class Main {
 		PrintWriter out = new PrintWriter("output.txt");
 		
 		//will be from parameters
-		double min_sup = 0.3;
-		double min_conf = 0.8;
+		double min_sup = Double.parseDouble(args[1]);//= 0.3;
+		double min_conf = Double.parseDouble(args[2]);//= 0.90;
 		
 		DecimalFormat df = new DecimalFormat("#0");
 		
