@@ -4,10 +4,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Main {
 	
@@ -165,7 +162,10 @@ public class Main {
 				templist.clear();
 			}
 			
-			//print all item sets that mean min_sup
+			//sort values in supResults by support
+			supResults = MapUtil.sortByValue(supResults);
+			
+			//print all item sets that meet min_sup
 			out.println("==Frequent itemsets (min_sup="+df.format(min_sup*(100))+"%)");
 			for (Map.Entry<List<String>, Double> entry : supResults.entrySet()) {
 				List<String> keys = entry.getKey();
@@ -196,4 +196,31 @@ public class Main {
 			}
 		}
 	}
+}
+//class to sort the results by support
+class MapUtil
+{
+    public static <K, V extends Comparable<? super V>> Map<K, V>
+    sortByValue( Map<K, V> map )
+    {
+        List<Map.Entry<K, V>> list =
+        new LinkedList<Map.Entry<K, V>>( map.entrySet() );
+        //sort
+        Collections.sort( list, new Comparator<Map.Entry<K, V>>()
+                         {
+                             public int compare( Map.Entry<K, V> o1, Map.Entry<K, V> o2 )
+                             {
+                                 return (o1.getValue()).compareTo( o2.getValue() );
+                             }
+                         });
+        //now put the list in descending order
+        Collections.reverse(list);
+        
+        Map<K, V> result = new LinkedHashMap<K, V>();
+        for (Map.Entry<K, V> entry : list)
+        {
+            result.put( entry.getKey(), entry.getValue() );
+        }
+        return result;
+    }
 }
