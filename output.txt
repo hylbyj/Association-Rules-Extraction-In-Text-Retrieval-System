@@ -1,0 +1,38 @@
+==Frequent itemsets (min_sup=30%)
+[u1], 46%
+[c1], 41%
+[o1], 40%
+[c1, o1], 40%
+[b1], 37%
+[b1, c1], 36%
+[b1, o1], 36%
+[b1, c1, o1], 35%
+[Commercial], 35%
+[p10], 33%
+[c1, p10], 32%
+[i1], 32%
+[o1, p10], 31%
+[i1, c1], 31%
+[c1, o1, p10], 31%
+[a1], 31%
+[i1, o1], 30%
+==High-confidence association rules (min_conf=80%)
+[o1,p10] => [c1](Conf: 100%, Supp:31%)
+[o1] => [c1](Conf: 99%, Supp:40%)
+[b1] => [c1](Conf: 99%, Supp:37%)
+[b1,o1] => [c1](Conf: 99%, Supp:36%)
+[i1] => [c1](Conf: 98%, Supp:32%)
+[p10] => [c1](Conf: 98%, Supp:33%)
+[c1,p10] => [o1](Conf: 98%, Supp:32%)
+[b1] => [o1](Conf: 97%, Supp:37%)
+[b1,c1] => [o1](Conf: 97%, Supp:36%)
+[c1] => [o1](Conf: 96%, Supp:41%)
+[p10] => [c1,o1](Conf: 96%, Supp:33%)
+[p10] => [o1](Conf: 96%, Supp:33%)
+[b1] => [c1,o1](Conf: 96%, Supp:37%)
+[i1] => [o1](Conf: 95%, Supp:32%)
+[o1] => [b1](Conf: 88%, Supp:40%)
+[c1,o1] => [b1](Conf: 88%, Supp:40%)
+[c1] => [b1](Conf: 87%, Supp:41%)
+[o1] => [b1,c1](Conf: 87%, Supp:40%)
+[c1] => [b1,o1](Conf: 85%, Supp:41%)
