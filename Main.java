@@ -95,7 +95,7 @@ public class Main {
 			//while there are still frequent item sets to be tested...
 			while(firstpass.size() != 0){
 				for(int i=0; i<firstpass.size(); i++){
-					for(int j=i; j<firstpass.size(); j++){
+					for(int j=i+1; j<firstpass.size(); j++){
 						List<String> listi = firstpass.get(i);
 						List<String> listj = firstpass.get(j);
 						for(int k=0; k<listj.size(); k++){
@@ -112,6 +112,23 @@ public class Main {
 								}
 							}
 						}
+					}
+				}
+				
+				//remove duplicates in templist
+				for(int i=0; i<templist.size(); i++){
+					ArrayList<String> valuesi = templist.get(i);
+					for(int j=i+1; j<templist.size(); j++){
+						ArrayList<String> valuesj = templist.get(j);
+                    outerloop:
+						{for(int k=0; k<valuesi.size(); k++){
+							boolean repeat = valuesj.contains(valuesi.get(k));
+							if(repeat == false && valuesi.size()>1){
+								break outerloop;
+							}
+						}
+                            templist.remove(valuesj);
+                            j=j-1;}
 					}
 				}
 				
