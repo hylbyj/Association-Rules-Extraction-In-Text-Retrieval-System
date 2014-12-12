@@ -16,7 +16,7 @@
 [c1, o1, p10], 31%
 [a1], 31%
 [i1, o1], 30%
-==High-confidence association rules (min_conf=80%)
+==High-confidence association rules (min_conf=90%)
 [o1,p10] => [c1](Conf: 100%, Supp:31%)
 [o1] => [c1](Conf: 99%, Supp:40%)
 [b1] => [c1](Conf: 99%, Supp:37%)
@@ -31,8 +31,3 @@
 [p10] => [o1](Conf: 96%, Supp:33%)
 [b1] => [c1,o1](Conf: 96%, Supp:37%)
 [i1] => [o1](Conf: 95%, Supp:32%)
-[o1] => [b1](Conf: 88%, Supp:40%)
-[c1,o1] => [b1](Conf: 88%, Supp:40%)
-[c1] => [b1](Conf: 87%, Supp:41%)
-[o1] => [b1,c1](Conf: 87%, Supp:40%)
-[c1] => [b1,o1](Conf: 85%, Supp:41%)
